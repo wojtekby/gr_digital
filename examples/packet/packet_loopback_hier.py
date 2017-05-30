@@ -3,7 +3,7 @@
 ##################################################
 # GNU Radio Python Flow Graph
 # Title: Packet Loopback Hier
-# Generated: Tue May 30 20:16:13 2017
+# Generated: Tue May 30 20:43:07 2017
 ##################################################
 
 if __name__ == '__main__':
@@ -74,10 +74,7 @@ class packet_loopback_hier(gr.top_block, Qt.QWidget):
         self.Const_PLD.gen_soft_dec_lut(8)
         self.sps = sps = 2
         self.rep = rep = 3
-        self.rate = rate = 2
-        self.polys = polys = [109, 79]
         self.nfilts = nfilts = 32
-        self.k = k = 7
         self.hdr_format = hdr_format = digital.header_format_counter(digital.packet_utils.default_access_code, 3, Const_PLD.bits_per_symbol())
         self.eb = eb = 0.22
 
@@ -87,7 +84,10 @@ class packet_loopback_hier(gr.top_block, Qt.QWidget):
 
         self.rx_rrc_taps = rx_rrc_taps = firdes.root_raised_cosine(nfilts, nfilts*sps, 1.0, eb, 11*sps*nfilts)
 
+        self.rate = rate = 2
+        self.polys = polys = [109, 79]
         self.noise = noise = 0.0
+        self.k = k = 7
         self.freq_offset = freq_offset = 0
 
 
@@ -95,7 +95,7 @@ class packet_loopback_hier(gr.top_block, Qt.QWidget):
 
 
 
-        self.enc = enc = fec.cc_encoder_make(8000, k, rate, (polys), 0, fec.CC_TERMINATED, False)
+        self.enc = enc = fec.repetition_encoder_make(8000, rep)
 
 
 
@@ -103,7 +103,7 @@ class packet_loopback_hier(gr.top_block, Qt.QWidget):
 
 
 
-        self.dec = dec = fec.cc_decoder.make(8000, k, rate, (polys), 0, -1, fec.CC_TERMINATED, False)
+        self.dec = dec = fec.repetition_decoder.make(8000, rep, 0.5)
 
         self.amp = amp = 1.0
 
@@ -161,7 +161,7 @@ class packet_loopback_hier(gr.top_block, Qt.QWidget):
         self._amp_win = RangeWidget(self._amp_range, self.set_amp, 'Amplitude', "counter_slider", float)
         self.top_layout.addWidget(self._amp_win)
         self.qtgui_time_sink_x_1_0_0_1 = qtgui.time_sink_c(
-        	125, #size
+        	1000, #size
         	1, #samp_rate
         	"", #name
         	1 #number of inputs
@@ -505,9 +505,9 @@ class packet_loopback_hier(gr.top_block, Qt.QWidget):
         	noise_seed=0,
         	block_tags=True
         )
-        self.blocks_random_pdu_0 = blocks.random_pdu(20, 200, chr(0xFF), 2)
+        self.blocks_random_pdu_0 = blocks.random_pdu(100, 100, chr(0xFF), 2)
         self.blocks_multiply_const_vxx_0 = blocks.multiply_const_vcc((amp, ))
-        self.blocks_message_strobe_0 = blocks.message_strobe(pmt.intern("TEST"), 500)
+        self.blocks_message_strobe_0 = blocks.message_strobe(pmt.intern("TEST"), 1000)
         self.blocks_message_debug_0_0_0 = blocks.message_debug()
 
         ##################################################
@@ -554,29 +554,11 @@ class packet_loopback_hier(gr.top_block, Qt.QWidget):
     def set_rep(self, rep):
         self.rep = rep
 
-    def get_rate(self):
-        return self.rate
-
-    def set_rate(self, rate):
-        self.rate = rate
-
-    def get_polys(self):
-        return self.polys
-
-    def set_polys(self, polys):
-        self.polys = polys
-
     def get_nfilts(self):
         return self.nfilts
 
     def set_nfilts(self, nfilts):
         self.nfilts = nfilts
-
-    def get_k(self):
-        return self.k
-
-    def set_k(self, k):
-        self.k = k
 
     def get_hdr_format(self):
         return self.hdr_format
@@ -614,12 +596,30 @@ class packet_loopback_hier(gr.top_block, Qt.QWidget):
         self.rx_rrc_taps = rx_rrc_taps
         self.packet_rx_0.set_psf_taps(self.rx_rrc_taps)
 
+    def get_rate(self):
+        return self.rate
+
+    def set_rate(self, rate):
+        self.rate = rate
+
+    def get_polys(self):
+        return self.polys
+
+    def set_polys(self, polys):
+        self.polys = polys
+
     def get_noise(self):
         return self.noise
 
     def set_noise(self, noise):
         self.noise = noise
         self.channels_channel_model_0.set_noise_voltage(self.noise)
+
+    def get_k(self):
+        return self.k
+
+    def set_k(self, k):
+        self.k = k
 
     def get_freq_offset(self):
         return self.freq_offset
